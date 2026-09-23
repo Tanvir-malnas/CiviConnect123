@@ -18,6 +18,7 @@ import MyComplaints from './pages/MyComplaints';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminComplaintDetail from './pages/admin/AdminComplaintDetail';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
+import Chatbot from "./components/chatbot/Chatbot";
 
 function App() {
   return (
@@ -100,6 +101,7 @@ function App() {
 
       {/* Comprehensive Municipal Footer */}
       <Footer />
+      <Chatbot />
     </div>
   );
 }

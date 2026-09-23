@@ -51,6 +51,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.post('/api/chat', (req, res) => {
+  const { message } = req.body;
+
+  res.json({
+    success: true,
+    reply: `I received your message: "${message}"`,
+  });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);

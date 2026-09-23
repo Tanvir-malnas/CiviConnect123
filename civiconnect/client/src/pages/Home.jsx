@@ -177,7 +177,7 @@ const Home = () => {
           {/* Search Form */}
           <form
             onSubmit={handleSearchSubmit}
-            className="max-w-2xl mx-auto pt-4 flex items-center bg-white rounded-2xl shadow-xl p-1.5 text-slate-800"
+            className="max-w-2xl mx-auto pt-4 flex items-center bg-white rounded-2xl shadow-xl p-1.5 text-slate-800 pb-4"
           >
             <div className="pl-3 pr-2 text-slate-400">
               <Search className="w-5 h-5" />
