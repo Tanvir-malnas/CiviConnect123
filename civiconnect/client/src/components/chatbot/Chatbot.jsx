@@ -3,33 +3,80 @@ import { useState } from "react";
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([
+    {
+      sender: "bot",
+      text: "👋 Hello! I'm Civi Assistant.\nHow can I help you today?",
+    },
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSend = async () => {
-  if (!message.trim()) return;
+    if (!message.trim() || isLoading) return;
 
-  try {
-    const response = await fetch(
-      "http://localhost:5000/api/chat",
+    const userMessage = message.trim();
+
+    // Show user's message immediately
+    setMessages((prev) => [
+      ...prev,
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: message,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    console.log("Chatbot response:", data);
+        sender: "user",
+        text: userMessage,
+      },
+    ]);
 
     setMessage("");
-  } catch (error) {
-    console.error("Chatbot error:", error);
-  }
-};
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: userMessage,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      console.log("Chatbot response:", data);
+
+      if (data.success) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: "bot",
+            text: data.reply,
+          },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: "bot",
+            text: "Sorry, I couldn't process your request.",
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Chatbot error:", error);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "bot",
+          text: "Sorry, something went wrong. Please try again.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -46,7 +93,7 @@ const Chatbot = () => {
       {/* Chat Window */}
       {isOpen && (
         <div className="fixed bottom-6 right-6 z-50 flex h-[500px] w-[350px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-          
+
           {/* Header */}
           <div className="flex items-center justify-between bg-blue-600 px-4 py-4 text-white">
             <div>
@@ -65,12 +112,36 @@ const Chatbot = () => {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
-            <div className="max-w-[80%] rounded-lg bg-white p-3 text-sm shadow-sm">
-              👋 Hello! I'm Civi Assistant.
-              <br />
-              How can I help you today?
-            </div>
+          <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  msg.sender === "user"
+                    ? "justify-end"
+                    : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-lg p-3 text-sm whitespace-pre-line ${
+                    msg.sender === "user"
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-gray-800 shadow-sm"
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+
+            {/* Loading message */}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="rounded-lg bg-white p-3 text-sm text-gray-500 shadow-sm">
+                  Thinking...
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Input */}
@@ -90,7 +161,8 @@ const Chatbot = () => {
 
             <button
               onClick={handleSend}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-white"
+              disabled={isLoading}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
             >
               ➤
             </button>

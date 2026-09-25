@@ -1,12 +1,10 @@
+import 'dotenv/config';
+
 import http from 'http';
 import { Server } from 'socket.io';
-import dotenv from 'dotenv';
 import app from './src/app.js';
 import connectDB from './src/config/db.js';
 import { initSocket } from './src/sockets/socketHandler.js';
-
-// Load environment variables
-dotenv.config();
 
 // Connect to MongoDB
 connectDB();
@@ -16,10 +14,10 @@ const server = http.createServer(app);
 
 // Attach Socket.IO
 const clientOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
-      // Allow localhost and specified client origin
       callback(null, true);
     },
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
@@ -44,5 +42,4 @@ server.listen(PORT, () => {
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error(`[Unhandled Rejection]: ${err.message}`);
-  // Keep server running in dev/demo rather than crashing
 });

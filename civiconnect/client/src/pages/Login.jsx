@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MapPin, LogIn, Lock, Mail, ShieldAlert, Sparkles, User } from 'lucide-react';
+import { LogIn, Lock, Mail } from 'lucide-react';
 
 const Login = () => {
   const { login } = useAuth();
@@ -31,16 +31,6 @@ const Login = () => {
     }
   };
 
-  const handleQuickFill = (userType) => {
-    if (userType === 'admin') {
-      setEmail('admin@civiconnect.com');
-      setPassword('Admin@123');
-    } else {
-      setEmail('rahul@gmail.com');
-      setPassword('Password@123');
-    }
-  };
-
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50">
@@ -54,30 +44,6 @@ const Login = () => {
           <p className="text-xs sm:text-sm text-slate-500">
             Access your civic complaints or manage municipal resolutions
           </p>
-        </div>
-
-        {/* Demo Quick-Fill Buttons for College Presentation */}
-        <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-2">
-          <div className="flex items-center gap-1 font-semibold text-slate-700">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Demo Quick-Fill:</span>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickFill('admin')}
-              className="flex-1 py-1.5 px-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold border border-indigo-200 transition-colors flex items-center justify-center gap-1 text-[11px]"
-            >
-              <ShieldAlert className="w-3 h-3" /> Admin Account
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('citizen')}
-              className="flex-1 py-1.5 px-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold border border-blue-200 transition-colors flex items-center justify-center gap-1 text-[11px]"
-            >
-              <User className="w-3 h-3" /> Citizen Account
-            </button>
-          </div>
         </div>
 
         {/* Login Form */}

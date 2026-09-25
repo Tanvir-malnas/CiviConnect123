@@ -9,10 +9,19 @@
     "dev": "node --watch server.js",
     "seed": "node seed/seedData.js"
   },
-  "keywords": ["civic", "complaints", "real-time", "socket.io", "express", "mongodb"],
+  "keywords": [
+    "civic",
+    "complaints",
+    "real-time",
+    "socket.io",
+    "express",
+    "mongodb"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/genai": "^2.24.0",
+    "@huggingface/transformers": "^4.3.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

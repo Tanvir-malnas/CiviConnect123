@@ -67,10 +67,10 @@ const CreateComplaint = () => {
       return;
     }
 
-    if (!location.lat || !location.lng) {
-      toast.error('Please pin the location on the map.');
-      return;
-    }
+    if (!location.address?.trim()) {
+  toast.error('Please enter the complaint location or address.');
+  return;
+}
 
     setSubmitting(true);
 

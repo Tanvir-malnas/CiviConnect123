@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+import FAQ from '../components/FAQ';
+
 const categories = [
   { id: 'all', label: 'All Issues' },
   { id: 'road', label: 'Roads & Potholes' },
@@ -381,6 +383,8 @@ const Home = () => {
           </>
         )}
       </main>
+
+       <FAQ />
     </div>
   );
 };

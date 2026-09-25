@@ -1,10 +1,24 @@
+
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+  useMap,
+} from 'react-leaflet';
 import L from 'leaflet';
-import { Crosshair, MapPin, Loader2 } from 'lucide-react';
+import {
+  Crosshair,
+  MapPin,
+  Loader2,
+  Navigation,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Custom Pin Icon using Leaflet DivIcon for zero missing asset issues
+// ============================================================
+// Custom Pin Icon
+// ============================================================
 const createCustomPinIcon = () => {
   return L.divIcon({
     className: 'custom-pin-marker',
@@ -24,34 +38,72 @@ const createCustomPinIcon = () => {
   });
 };
 
-// Component to handle map clicks & center updates
-const LocationMarker = ({ position, onLocationSelect }) => {
+// ============================================================
+// Map Controller
+// ============================================================
+const MapController = ({ position, shouldZoom }) => {
   const map = useMap();
 
+  useEffect(() => {
+    if (!position || !shouldZoom) return;
+
+    map.flyTo(
+      [position.lat, position.lng],
+      18,
+      {
+        duration: 1.2,
+      }
+    );
+  }, [position, shouldZoom, map]);
+
+  return null;
+};
+
+// ============================================================
+// Location Marker + Map Click
+// ============================================================
+const LocationMarker = ({ position, onLocationSelect }) => {
   useMapEvents({
     click(e) {
       onLocationSelect(e.latlng.lat, e.latlng.lng);
     },
   });
 
-  useEffect(() => {
-    if (position) {
-      map.setView([position.lat, position.lng], map.getZoom());
-    }
-  }, [position, map]);
-
   return position ? (
-    <Marker position={[position.lat, position.lng]} icon={createCustomPinIcon()} />
+    <Marker
+      position={[position.lat, position.lng]}
+      icon={createCustomPinIcon()}
+    />
   ) : null;
 };
 
+// ============================================================
+// Main MapPicker
+// ============================================================
 const MapPicker = ({ location, onChange }) => {
   const [isLocating, setIsLocating] = useState(false);
-  // Default coordinates: Mumbai
-  const defaultPos = { lat: 19.0760, lng: 72.8777 };
-  const currentPos = location?.lat && location?.lng ? { lat: location.lat, lng: location.lng } : defaultPos;
+  const [shouldZoom, setShouldZoom] = useState(false);
+  const [manualAddress, setManualAddress] = useState(
+    location?.address || ''
+  );
 
-  // Reverse geocode via OpenStreetMap Nominatim
+  // Default coordinates
+  const defaultPos = {
+    lat: 19.0760,
+    lng: 72.8777,
+  };
+
+  const currentPos =
+    location?.lat != null && location?.lng != null
+      ? {
+          lat: Number(location.lat),
+          lng: Number(location.lng),
+        }
+      : defaultPos;
+
+  // ============================================================
+  // Reverse Geocoding
+  // ============================================================
   const reverseGeocode = async (lat, lng) => {
     try {
       const response = await fetch(
@@ -62,103 +114,258 @@ const MapPicker = ({ location, onChange }) => {
           },
         }
       );
+
       if (response.ok) {
         const data = await response.json();
-        return data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+        return (
+          data.display_name ||
+          `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+        );
       }
     } catch (err) {
       console.warn('Reverse geocoding error:', err);
     }
-    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   };
 
+  // ============================================================
+  // Select Location From Map / GPS
+  // ============================================================
   const handleSelectLocation = async (lat, lng) => {
     const address = await reverseGeocode(lat, lng);
-    onChange({
-      lat: Number(lat.toFixed(6)),
-      lng: Number(lng.toFixed(6)),
+
+    const newLocation = {
+      lat: Number(Number(lat).toFixed(6)),
+      lng: Number(Number(lng).toFixed(6)),
       address,
+    };
+
+    setManualAddress(address);
+    onChange(newLocation);
+
+    // Tell map to zoom closely
+    setShouldZoom(true);
+  };
+
+  // ============================================================
+  // Manual Address
+  // ============================================================
+  const handleManualAddressChange = (e) => {
+    const value = e.target.value;
+
+    setManualAddress(value);
+
+    onChange({
+      ...(location || {}),
+      address: value,
     });
   };
 
+  // ============================================================
+  // Current GPS Location
+  // ============================================================
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser.');
+      toast.error(
+        'Geolocation is not supported by your browser.'
+      );
       return;
     }
 
     setIsLocating(true);
+
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        await handleSelectLocation(latitude, longitude);
+        const {
+          latitude,
+          longitude,
+          accuracy,
+        } = pos.coords;
+
+        console.log('GPS Location:', {
+          latitude,
+          longitude,
+          accuracy,
+        });
+
+        await handleSelectLocation(
+          latitude,
+          longitude
+        );
+
         setIsLocating(false);
-        toast.success('Location pinpointed from your GPS!');
+
+        toast.success(
+          `Location detected (${Math.round(
+            accuracy
+          )}m accuracy)`
+        );
       },
+
       (err) => {
+        console.warn('Geolocation error:', err);
+
         setIsLocating(false);
-        toast.error('Could not access your location. Please click directly on the map.');
+
+        let message =
+          'Could not access your location.';
+
+        if (err.code === 1) {
+          message =
+            'Location permission was denied. Please allow location access.';
+        } else if (err.code === 2) {
+          message =
+            'Your location could not be determined. Please try again.';
+        } else if (err.code === 3) {
+          message =
+            'Location request timed out. Please try again.';
+        }
+
+        toast.error(message);
       },
-      { timeout: 10000, enableHighAccuracy: true }
+
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
     );
   };
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+
+      {/* ======================================================
+          Header
+      ======================================================= */}
+      <div className="flex items-center justify-between gap-3">
         <label className="block text-sm font-semibold text-slate-700">
-          Complaint Location Pin <span className="text-rose-500">*</span>
+          Complaint Location{' '}
+          <span className="text-rose-500">*</span>
         </label>
+
         <button
           type="button"
           onClick={handleUseMyLocation}
           disabled={isLocating}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isLocating ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
             <Crosshair className="w-3.5 h-3.5" />
           )}
-          <span>{isLocating ? 'Detecting GPS...' : 'Use My Current Location'}</span>
+
+          <span>
+            {isLocating
+              ? 'Detecting GPS...'
+              : 'Use My Current Location'}
+          </span>
         </button>
       </div>
 
-      {/* Map Container */}
+      {/* ======================================================
+          Manual Address Field
+      ======================================================= */}
+      <div>
+        <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+          Location / Address
+        </label>
+
+        <textarea
+          value={manualAddress}
+          onChange={handleManualAddressChange}
+          placeholder="Enter the location or address of the issue..."
+          rows={2}
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 placeholder:text-slate-400 outline-none resize-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
+        />
+
+        <p className="mt-1.5 text-[11px] text-slate-400">
+          You can enter a complete address, landmark, street,
+          area, or any useful location description.
+        </p>
+      </div>
+
+      {/* ======================================================
+          Map
+      ======================================================= */}
       <div className="h-64 sm:h-72 w-full rounded-xl overflow-hidden border border-slate-300 relative shadow-inner">
+
         <MapContainer
-          center={[currentPos.lat, currentPos.lng]}
+          center={[
+            currentPos.lat,
+            currentPos.lng,
+          ]}
           zoom={13}
-          scrollWheelZoom={false}
+          scrollWheelZoom={true}
           className="h-full w-full"
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <LocationMarker position={currentPos} onLocationSelect={handleSelectLocation} />
+
+          <MapController
+            position={currentPos}
+            shouldZoom={shouldZoom}
+          />
+
+          <LocationMarker
+            position={currentPos}
+            onLocationSelect={
+              handleSelectLocation
+            }
+          />
         </MapContainer>
-        <div className="absolute bottom-2 left-2 z-[400] bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[11px] text-slate-600 font-mono shadow-sm">
-          Click map to adjust pin
+
+        {/* Map Hint */}
+        <div className="absolute bottom-2 left-2 z-[400] bg-white/90 backdrop-blur-sm px-2.5 py-1.5 rounded-lg text-[11px] text-slate-600 font-medium shadow-sm border border-slate-200">
+          Click on the map to adjust the pin
+        </div>
+
+        {/* Zoom Hint */}
+        <div className="absolute top-2 left-2 z-[400] bg-white/90 backdrop-blur-sm px-2.5 py-1.5 rounded-lg text-[11px] text-slate-600 font-medium shadow-sm border border-slate-200 flex items-center gap-1.5">
+          <Navigation className="w-3 h-3 text-blue-600" />
+          Zoom in for a more precise location
         </div>
       </div>
 
-      {/* Address & Coordinates Display */}
+      {/* ======================================================
+          Selected Location Details
+      ======================================================= */}
       <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex items-start gap-2">
+
         <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <p className="font-semibold text-slate-800">
-            {location?.address || 'Click anywhere on the map above to drop a pin.'}
+
+        <div className="flex-1 min-w-0">
+
+          <p className="font-semibold text-slate-800 leading-5">
+            {manualAddress ||
+              'Enter an address or click on the map to select a location.'}
           </p>
-          {location?.lat && (
-            <p className="text-slate-400 font-mono mt-0.5">
-              Lat: {location.lat}, Lng: {location.lng}
-            </p>
-          )}
+
+          {location?.lat != null &&
+            location?.lng != null && (
+              <p className="text-slate-400 font-mono mt-1">
+                Lat: {location.lat}, Lng:{' '}
+                {location.lng}
+              </p>
+            )}
         </div>
       </div>
+
+      {/* Helper */}
+      <p className="text-[11px] text-slate-400">
+        Tip: If GPS is not accurate enough, enter the
+        location manually and use the map to place the
+        pin as close as possible.
+      </p>
+
     </div>
   );
 };
 
 export default MapPicker;
+
