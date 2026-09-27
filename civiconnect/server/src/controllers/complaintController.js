@@ -17,11 +17,11 @@ export const createComplaint = async (req, res) => {
       });
     }
 
-    let photoUrl = '';
-    if (req.file) {
-      // Relative path accessible via static file server
-      photoUrl = `/uploads/${req.file.filename}`;
-    }
+   let photoUrl = '';
+if (req.file) {
+  console.log('UPLOAD FILE:', req.file);
+  photoUrl = req.file.path;
+}
 
     const complaint = await Complaint.create({
       title,

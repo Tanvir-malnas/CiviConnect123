@@ -247,8 +247,7 @@ export const uploadResolutionPhoto = async (req, res) => {
         message: 'Complaint not found.',
       });
     }
-
-    complaint.resolutionPhotoUrl = `/uploads/${req.file.filename}`;
+complaint.resolutionPhotoUrl = req.file.path;
     
     // If optional status change passed or defaults to Resolved
     if (req.body.markResolved === 'true' || req.body.markResolved === true) {
