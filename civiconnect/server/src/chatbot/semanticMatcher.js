@@ -84,7 +84,7 @@ const getKnowledgeEmbeddings = async (knowledge) => {
 export const findSemanticAnswer = async (
   message,
   knowledge,
-  threshold = 0.70
+  threshold = 0.78
 ) => {
   const userEmbedding = await getEmbedding(message);
 
@@ -109,7 +109,7 @@ for (const entry of embeddings) {
     `Semantic match: ${bestMatch?.id || 'none'} | score: ${bestScore.toFixed(3)}`
   );
 
- if (bestMatch && bestScore >= threshold) {
+if (bestMatch && bestScore >= 0.78) {
   return {
     answer: bestMatch.answer,
     score: bestScore,
@@ -118,7 +118,7 @@ for (const entry of embeddings) {
   };
 }
 
-if (bestMatch && bestScore >= 0.50) {
+if (bestMatch && bestScore >= 0.60) {
   return {
     answer: bestMatch.answer,
     score: bestScore,

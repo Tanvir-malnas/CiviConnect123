@@ -55,14 +55,14 @@ const findKnowledgeAnswer = (message) => {
   // ------------------------------------------
 
   const hasComplaintWord =
-    /\b(complaint|complain|issue|problem|report|request)\b/.test(
-      normalizedMessage
-    );
+  /\b(complaint|complain|issue|problem|request)\b/.test(
+    normalizedMessage
+  );
 
-  const hasSubmitIntent =
-    /\b(submit|file|create|raise|make|report|register|send)\b/.test(
-      normalizedMessage
-    );
+const hasSubmitIntent =
+  /\b(submit|file|create|raise|make|register)\b/.test(
+    normalizedMessage
+  );
 
   const hasTrackIntent =
     /\b(track|status|progress|check|follow|history)\b/.test(
@@ -189,13 +189,38 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+const getSafeErrorDetails = (error) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  const redact = (value) => {
+    if (value == null) return value;
+
+    const text = typeof value === 'string' ? value : JSON.stringify(value);
+    return apiKey ? text?.replaceAll(apiKey, '[REDACTED]') : text;
+  };
+
+  return {
+    name: redact(error?.name || 'Error'),
+    message: redact(error?.message || String(error)),
+    status: error?.status ?? error?.response?.status ?? null,
+    statusText: redact(error?.statusText ?? error?.response?.statusText),
+    apiResponse: redact(
+      error?.response?.data ?? error?.errorDetails ?? error?.details
+    ),
+  };
+};
+
 // ==========================================
 // AI CHATBOT
 // ==========================================
 
 app.post('/api/chat', async (req, res) => {
+  let stage = 'request';
+
   try {
-    const { message } = req.body;
+    const { message } = req.body || {};
+    console.log('[CHAT] Received message:', message);
+
+    stage = 'validation';
 
     // ------------------------------------------
     // Validate message
@@ -216,7 +241,9 @@ app.post('/api/chat', async (req, res) => {
 // First: exact + intent matching
 // ------------------------------------------
 
+stage = 'knowledge';
 const knowledgeAnswer = findKnowledgeAnswer(message);
+console.log('[CHAT] Knowledge result:', knowledgeAnswer ? 'matched' : 'no match');
 
 if (knowledgeAnswer) {
   return res.status(200).json({
@@ -230,12 +257,20 @@ if (knowledgeAnswer) {
 // Second: semantic matching
 // ------------------------------------------
 
+stage = 'semantic';
+console.log('[CHAT] Running semantic matcher...');
 const semanticAnswer = await findSemanticAnswer(
   message,
   civiKnowledge
 );
 
-console.log("Semantic result:", semanticAnswer);
+console.log('[CHAT] Semantic result:', semanticAnswer
+  ? {
+      confidence: semanticAnswer.confidence,
+      score: semanticAnswer.score,
+      source: semanticAnswer.source,
+    }
+  : 'no confident match');
 
 if (semanticAnswer?.confidence === 'high') {
   return res.status(200).json({
@@ -246,21 +281,16 @@ if (semanticAnswer?.confidence === 'high') {
   });
 }
 
-if (semanticAnswer?.confidence === 'medium') {
-  return res.status(200).json({
-    success: true,
-    reply: 'I can help you report an issue. Could you tell me what kind of problem it is, such as garbage, potholes, streetlights, water supply, or something else?',
-    source: 'civi-semantic-clarification',
-    score: semanticAnswer.score,
-  });
-}
 
     // ------------------------------------------
     // Second: Gemini fallback
     // ------------------------------------------
 
+    stage = 'gemini';
+    console.log('[CHAT] Calling Gemini...');
+
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-3.5-flash-lite',
 
       contents: `
 You are Civi Assistant, the official assistant for the
@@ -287,6 +317,7 @@ ${message}
       `,
     });
 
+    console.log('[CHAT] Gemini response received');
     const reply = response.text;
 
     return res.status(200).json({
@@ -295,13 +326,13 @@ ${message}
       source: 'gemini',
     });
   } catch (error) {
-    console.error('Gemini API Error:', error);
+  console.error(`[CHAT] Request failed during ${stage}:`, getSafeErrorDetails(error));
 
-    return res.status(500).json({
-      success: false,
-      message: 'Unable to get AI response',
-    });
-  }
+  return res.status(500).json({
+    success: false,
+    message: 'Unable to get AI response'
+  });
+}
 });
 
 // ==========================================

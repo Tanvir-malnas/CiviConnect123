@@ -1,4 +1,5 @@
 import { useState } from "react";
+import api from "../../api/axiosInstance";
 
 const Chatbot = ({ isOpen, onOpenChange }) => {
   const [message, setMessage] = useState("");
@@ -28,20 +29,10 @@ const Chatbot = ({ isOpen, onOpenChange }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        "https://civiconnect-server.onrender.com/api/chat",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            message: userMessage,
-          }),
-        }
-      );
-
-      const data = await response.json();
+      const response = await api.post("/chat", {
+        message: userMessage,
+      });
+      const data = response.data;
 
       console.log("Chatbot response:", data);
 

@@ -240,14 +240,13 @@ const civiKnowledge = [
     ],
 
     keywords: [
-      "contact",
-      "contact support",
-      "support",
-      "help",
-      "need help",
-      "customer support",
-      "get help",
-    ],
+  "contact support",
+  "contact civiconnect",
+  "civiconnect support",
+  "need help with civiconnect",
+  "get help with civiconnect",
+  "help with civiconnect",
+],
 
     answer:
       "For CiviConnect-specific assistance, you can use the available support or contact options provided on the platform.",
