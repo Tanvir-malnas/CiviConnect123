@@ -102,7 +102,7 @@ const Chatbot = ({ isOpen, onOpenChange }) => {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto overscroll-contain bg-gray-50 p-4 space-y-3">
             {messages.map((msg, index) => (
               <div
                 key={index}
