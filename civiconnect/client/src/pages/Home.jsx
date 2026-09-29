@@ -160,7 +160,19 @@ const Home = ({ onOpenChatbot }) => {
   return (
     <div className="min-h-screen pb-16">
       {/* Hero Banner */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-blue-900 via-indigo-900 to-slate-900 text-white pt-12 pb-16 px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden bg-slate-900 text-white pt-12 pb-16 px-4 sm:px-6 lg:px-8">
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="/banner.png"
+          aria-hidden="true"
+        >
+          <source src="/banner.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-slate-950/45" />
         <div className="max-w-6xl mx-auto text-center space-y-4 relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-semibold backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
@@ -200,9 +212,6 @@ const Home = ({ onOpenChatbot }) => {
           </form>
         </div>
 
-        {/* Decorative background gradient circles */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
       </section>
 
       {/* Main Content Area */}
