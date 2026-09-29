@@ -1,7 +1,6 @@
 import { useState } from "react";
 
-const Chatbot = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const Chatbot = ({ isOpen, onOpenChange }) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([
     {
@@ -83,7 +82,7 @@ const Chatbot = () => {
       {/* Chat Button */}
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => onOpenChange(true)}
           className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-2xl text-white shadow-lg transition hover:scale-105"
         >
           💬
@@ -104,7 +103,7 @@ const Chatbot = () => {
             </div>
 
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => onOpenChange(false)}
               className="text-xl"
             >
               ×

@@ -74,7 +74,7 @@ const faqs = [
   // },
 ];
 
-const FAQ = () => {
+const FAQ = ({ onOpenChatbot }) => {
   const [openIndex, setOpenIndex] = useState(null);
 
   const toggleFAQ = (index) => {
@@ -154,6 +154,7 @@ const FAQ = () => {
 
                 <button
                   type="button"
+                  onClick={onOpenChatbot}
                   className="mt-5 w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 shadow-sm"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -271,6 +272,7 @@ const FAQ = () => {
 
           <button
             type="button"
+            onClick={onOpenChatbot}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all duration-300 hover:-translate-y-0.5 shadow-sm shrink-0"
           >
             <MessageCircle className="w-4 h-4" />

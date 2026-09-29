@@ -37,7 +37,7 @@ const statuses = [
   'Rejected',
 ];
 
-const Home = () => {
+const Home = ({ onOpenChatbot }) => {
   const { socket } = useSocket();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -384,7 +384,7 @@ const Home = () => {
         )}
       </main>
 
-       <FAQ />
+      <FAQ onOpenChatbot={onOpenChatbot} />
     </div>
   );
 };

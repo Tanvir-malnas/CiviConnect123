@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
@@ -21,6 +21,8 @@ import AdminAnalytics from './pages/admin/AdminAnalytics';
 import Chatbot from "./components/chatbot/Chatbot";
 
 function App() {
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
       {/* Toast Notification Container */}
@@ -45,7 +47,7 @@ function App() {
       <div className="flex-1">
         <Routes>
           {/* Public Feed */}
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home onOpenChatbot={() => setIsChatbotOpen(true)} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/complaints/:id" element={<ComplaintDetail />} />
@@ -101,7 +103,7 @@ function App() {
 
       {/* Comprehensive Municipal Footer */}
       <Footer />
-      <Chatbot />
+      <Chatbot isOpen={isChatbotOpen} onOpenChange={setIsChatbotOpen} />
     </div>
   );
 }
