@@ -126,12 +126,14 @@ const Chatbot = ({ isOpen, onOpenChange }) => {
 
             {/* Loading message */}
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="rounded-lg bg-white p-3 text-sm text-gray-500 shadow-sm">
-                  Thinking...
-                </div>
-              </div>
-            )}
+  <div className="flex justify-start">
+    <div className="flex items-center gap-1 rounded-lg bg-white px-4 py-3 shadow-sm">
+      <span className="h-2 w-2 animate-bounce rounded-full bg-blue-600 [animation-delay:-0.3s]" />
+      <span className="h-2 w-2 animate-bounce rounded-full bg-blue-600 [animation-delay:-0.15s]" />
+      <span className="h-2 w-2 animate-bounce rounded-full bg-blue-600" />
+    </div>
+  </div>
+)}
           </div>
 
           {/* Input */}
